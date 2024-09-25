@@ -2,7 +2,7 @@ import requests
 import time
 import argparse
 
-# Daftar User-Agent yang akan digunakan untuk rotasi
+
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0",
@@ -16,7 +16,7 @@ USER_AGENTS = [
     "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0"
 ]
 
-# Fungsi untuk melakukan crawling dari Wayback Machine dengan rotasi User-Agent
+
 def crawl_wayback(domain, retries=3):
     base_url = f"https://web.archive.org/web/timemap/json?url={domain}&matchType=prefix&collapse=urlkey&output=json&fl=original%2Cmimetype%2Ctimestamp%2Cendtimestamp%2Cgroupcount%2Cuniqcount&filter=!statuscode%3A%5B45%5D..&limit=10000"
     for attempt in range(retries):
@@ -33,46 +33,40 @@ def crawl_wayback(domain, retries=3):
 
         if attempt < retries - 1:
             print(f"[!] Retrying... ({attempt + 1}/{retries})")
-            time.sleep(5)  # Menunggu 5 detik sebelum mencoba lagi
+            time.sleep(5)  
         else:
             print(f"[-] Skipping {domain} due to repeated errors.")
     return None
 
-# Fungsi untuk memproses URL dan menghapus protokol
+
 def process_url(url):
-    # Menghapus 'https://', 'http://', 'www.' dari URL
     url = url.replace('https://', '').replace('http://', '').replace('www.', '')
     return url
 
-# Fungsi utama untuk membaca daftar domain, melakukan crawling, dan menyimpan output
 def main(input_file, output_file):
     with open(input_file, 'r') as f:
         domains = [line.strip() for line in f.readlines()]
 
     with open(output_file, 'w') as out:
         for domain in domains:
-            # Menambahkan "http://" jika domain tidak memiliki protokol
             if not domain.startswith('http://') and not domain.startswith('https://'):
                 domain = 'http://' + domain
 
             print(f"[+] Crawling {domain} | Processing...")
 
-            # Melakukan crawling ke Wayback Machine
             data = crawl_wayback(domain)
 
             if data:
                 print(f"[+] Crawling {domain} | Done!!, next domain.")
                 for entry in data[1:]:
-                    # Proses URL untuk menghapus protokol
                     url = process_url(entry[0])
                     out.write(f"{url}\n")
             else:
                 print(f"[-] Skipping {domain} due to no crawled data.")
-                continue  # Melanjutkan ke domain berikutnya
+                continue  
             
-            time.sleep(15)  # Menambahkan delay 15 detik antara permintaan untuk menghindari rate limiting
+            time.sleep(15)  
 
-# Fungsi untuk mengatur parsing argumen
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Crawl Wayback Machine for multiple domains.")
     parser.add_argument("-l", "--list", required=True, help="Path to the file containing the list of domains.")
