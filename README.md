@@ -8,3 +8,6 @@ To use this script, run the following command:
 
 ```bash
 python3 wayback.py -l files.txt -o output.txt
+```
+
+this is not the final code yet... there may still be bugs
